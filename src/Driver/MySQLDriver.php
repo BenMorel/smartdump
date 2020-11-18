@@ -85,6 +85,7 @@ final class MySQLDriver implements Driver
         $statement = $this->pdo->query('SELECT * FROM ' . $this->getTableIdentifier($table));
 
         while (false !== $row = $statement->fetch(PDO::FETCH_ASSOC)) {
+            /** @psalm-var non-empty-array<string, scalar|null> $row */
             yield $row;
         }
     }
@@ -108,7 +109,7 @@ final class MySQLDriver implements Driver
         $statement = $this->pdo->prepare($query);
         $statement->execute($values);
 
-        /** @psalm-var list<array<string, scalar|null>> $rows */
+        /** @psalm-var list<non-empty-array<string, scalar|null>> $rows */
         $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
 
         assert(count($rows) === 1);
@@ -167,6 +168,7 @@ final class MySQLDriver implements Driver
     {
         $statement = $this->pdo->query('SHOW CREATE TABLE ' . $this->getTableIdentifier($table));
 
+        /** @var string $sql */
         $sql = $statement->fetchColumn(1);
 
         if (! $schemaNameInOutput) {

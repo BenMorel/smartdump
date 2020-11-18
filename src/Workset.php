@@ -17,7 +17,7 @@ final class Workset
     /**
      * The ids of the rows in the workset, indexed by schema name & table name.
      *
-     * @psalm-var array<string, array<string, list<array<string, int|string>>>>
+     * @psalm-var array<string, array<string, list<non-empty-array<string, int|string>>>>
      */
     private array $rows = [];
 
@@ -39,7 +39,7 @@ final class Workset
      *
      * Return true if the row was added to the workset, false if it already existed.
      *
-     * @psalm-param array<string, int|string> $primaryKeyId
+     * @psalm-param non-empty-array<string, int|string> $primaryKeyId
      */
     public function addRow(Table $table, array $primaryKeyId): bool
     {
@@ -78,7 +78,7 @@ final class Workset
      *
      * Each identifier is an associative array of column name to value, that matches the primary key of the table.
      *
-     * @psalm-return array<string, int|string>[]
+     * @psalm-return list<non-empty-array<string, int|string>>
      */
     public function getRows(Table $table): array
     {

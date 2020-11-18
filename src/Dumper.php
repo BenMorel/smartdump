@@ -61,6 +61,9 @@ class Dumper
         }
     }
 
+    /**
+     * @param Table[] $tables
+     */
     private function generateWorkset(array $tables): Workset
     {
         // start with a blank workset, and fill it by iterating recursively over the tables
@@ -76,7 +79,7 @@ class Dumper
     }
 
     /**
-     * @psalm-param array<string, scalar|null> $row
+     * @psalm-param non-empty-array<string, scalar|null> $row
      */
     private function addRowToWorkset(Workset $workset, Table $table, array $row): void
     {
@@ -121,8 +124,10 @@ class Dumper
     /**
      * Returns a SQL statement to create the given row.
      *
-     * @param string                     $table The quoted table name.
-     * @param array<string, scalar|null> $row   The row, as an associative array of column names to values.
+     * @psalm-param non-empty-array<string, scalar|null> $row
+     *
+     * @param string $table The quoted table name.
+     * @param array  $row   The row, as an associative array of column names to values.
      */
     private function getInsertSQL(string $table, array $row): string
     {

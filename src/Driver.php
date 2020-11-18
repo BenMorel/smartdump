@@ -31,7 +31,7 @@ interface Driver
      *
      * @param Table $table
      *
-     * @return Generator<array<string, scalar|null>>
+     * @return Generator<non-empty-array<string, scalar|null>>
      */
     public function readTable(Table $table): Generator;
 
