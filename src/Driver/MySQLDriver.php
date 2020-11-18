@@ -171,6 +171,11 @@ final class MySQLDriver implements Driver
         /** @var string $sql */
         $sql = $statement->fetchColumn(1);
 
+        assert(strpos($sql, 'CREATE TABLE') === 0);
+
+        // output does not contain a semicolon
+        $sql .= ';';
+
         if (! $schemaNameInOutput) {
             // MySQL never includes the schema name in the SHOW CREATE TABLE output.
             return $sql;
@@ -186,7 +191,7 @@ final class MySQLDriver implements Driver
 
     public function getDropTableIfExistsSQL(string $table): string
     {
-        return 'DROP TABLE IF EXISTS ' . $table;
+        return 'DROP TABLE IF EXISTS ' . $table . ';';
     }
 
     /**
