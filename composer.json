@@ -1,0 +1,19 @@
+{
+    "name": "benmorel/smartdump",
+    "description": "Dumps selected MySQL tables together with their relationships",
+    "license": "MIT",
+    "require": {
+        "php": ">=7.4",
+        "ext-pdo": "*",
+        "symfony/console": "~2.5 || ~3.0 || ~4.0 || ~5.0",
+        "vimeo/psalm": "^4.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "BenMorel\\SmartDump\\": "src/"
+        }
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^5.1"
+    }
+}
