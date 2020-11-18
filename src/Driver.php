@@ -64,6 +64,16 @@ interface Driver
     public function getDropTableIfExistsSQL(string $table): string;
 
     /**
+     * Returns a SQL statement that disables foreign key checks.
+     */
+    public function getDisableForeignKeysSQL(): string;
+
+    /**
+     * Returns a SQL statement that enables foreign key checks.
+     */
+    public function getEnableForeignKeysSQL(): string;
+
+    /**
      * Quotes an identifier such as a table name or field name.
      *
      * Example for MySQL: 'foo' => '`foo`'

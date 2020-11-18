@@ -42,6 +42,10 @@ class Dumper
     {
         $workset = $this->generateWorkset($tables);
 
+        // even though our export should be referentially intact, our inserts are not necessarily performed in the right
+        // order, so we disable foreign key checks first!
+        yield $this->driver->getDisableForeignKeysSQL();
+
         foreach ($workset->getTables() as $table) {
             $tableName = $schemaNameInOutput
                 ? $this->driver->getTableIdentifier($table)
@@ -59,6 +63,8 @@ class Dumper
                 yield $this->getInsertSQL($tableName, $row);
             }
         }
+
+        yield $this->driver->getEnableForeignKeysSQL();
     }
 
     /**
