@@ -38,15 +38,16 @@ final class MySQLDriver implements Driver
         $foreignKeys = [];
 
         foreach ($rows as $row) {
-            $referencedTable = new Table();
-            [$referencedTable->schema, $referencedTable->name] = explode('/', $row['REF_NAME']);
+            [$refTableSchema, $refTableName] = explode('/', $row['REF_NAME']);
+            [$fkSchema, $fkName] = explode('/', $row['ID']);
 
             $foreignKey = new ForeignKey();
-            [$foreignKey->schema, $foreignKey->name] = explode('/', $row['ID']);
 
-            $foreignKey->table = $table;
-            $foreignKey->referencedTable = $referencedTable;
-            $foreignKey->columns = $this->getForeignKeyColumns($row['ID']);
+            $foreignKey->schema          = $fkSchema;
+            $foreignKey->name            = $fkName;
+            $foreignKey->table           = $table;
+            $foreignKey->referencedTable = new Table($refTableSchema, $refTableName);
+            $foreignKey->columns         = $this->getForeignKeyColumns($row['ID']);
 
             $foreignKeys[] = $foreignKey;
         }

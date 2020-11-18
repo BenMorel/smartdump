@@ -18,4 +18,10 @@ final class Table
      * The table name.
      */
     public string $name;
+
+    public function __construct(string $schema, string $name)
+    {
+        $this->schema = $schema;
+        $this->name = $name;
+    }
 }
