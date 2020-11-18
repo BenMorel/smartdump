@@ -37,4 +37,11 @@ final class ForeignKey
      * @psalm-var non-empty-array<string, string>
      */
     public array $columns;
+
+    /**
+     * Whether the referenced column names match the table's primary key.
+     *
+     * True if they match the primary key, false if they match a unique key.
+     */
+    public bool $targetsPrimaryKey;
 }
