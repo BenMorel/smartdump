@@ -76,7 +76,7 @@ $command = function(InputInterface $input, OutputInterface $output): void {
     $statements = $dumper->dump($tables, ! $noSchemaName, $addDropTable);
 
     foreach ($statements as $statement) {
-        echo $statement, PHP_EOL;
+        $output->writeln($statement);
     }
 };
 
