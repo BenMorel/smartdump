@@ -1,0 +1,93 @@
+#!/usr/bin/env php
+<?php
+
+use BenMorel\SmartDump\Driver\MySQLDriver;
+use BenMorel\SmartDump\Dumper;
+use BenMorel\SmartDump\Object\Table;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\SingleCommandApplication;
+
+set_time_limit(0);
+
+$possibleVendorLocations = array(
+    '..',         // when used in its original location during development, in bin/
+    '../..',      // when used from the Composer binary folder, in vendor/bin/
+    '../../../..' // when used from a Composer vendor directory, in vendor/benmorel/smartdump/bin/
+);
+
+// Locate the Composer autoloader
+$found = false;
+foreach ($possibleVendorLocations as $location) {
+    $autoloader = __DIR__ . '/' . $location . '/vendor/autoload.php';
+    if (is_readable($autoloader)) {
+        require $autoloader;
+        $found = true;
+        break;
+    }
+}
+
+if (! $found) {
+    echo 'Could not find the vendor/autoload.php file.' . PHP_EOL;
+    echo 'Did you install your dependencies using Composer?' . PHP_EOL;
+    exit(1);
+}
+
+$command = function(InputInterface $input, OutputInterface $output): void {
+    $dsn = sprintf(
+        'mysql:host=%s;port=%d;charset=%s',
+        $input->getOption('host'),
+        (int) $input->getOption('port'),
+        $input->getOption('charset')
+    );
+
+    $pdo = new PDO($dsn, $input->getOption('user'), $input->getOption('password'));
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    $driver = new MySQLDriver($pdo);
+    $dumper = new Dumper($driver);
+
+    /** @var string|null $database */
+    $database = $input->getOption('database');
+
+    $tables = [];
+
+    foreach ($input->getArgument('tables') as $table) {
+        if ($database !== null) {
+            $tables[] = new Table($database, $table);
+        } else {
+            $schemaAndTable = explode('.', $table);
+
+            if (count($schemaAndTable) !== 2) {
+                throw new InvalidArgumentException('Either provide table names as schema.table, or use the --database option.');
+            }
+
+            $tables[] = new Table(...$schemaAndTable);
+        }
+    }
+
+    $addDropTable = (bool) $input->getOption('add-drop-table');
+    $noSchemaName = (bool) $input->getOption('no-schema-name');
+
+    $statements = $dumper->dump($tables, ! $noSchemaName, $addDropTable);
+
+    foreach ($statements as $statement) {
+        echo $statement, PHP_EOL;
+    }
+};
+
+(new SingleCommandApplication())
+    ->setName('Smart Dump')
+    ->addArgument('tables', InputArgument::IS_ARRAY, 'The table names, separated with spaces, as schema.table, or just the table name if --database is provided')
+    ->addOption('host', null, InputOption::VALUE_REQUIRED, 'The host name; defaults to localhost', 'localhost')
+    ->addOption('port', null, InputOption::VALUE_REQUIRED, 'The port number; defaults to 3306', '3306')
+    ->addOption('user', null, InputOption::VALUE_REQUIRED, 'The user name; defaults to root', 'root')
+    ->addOption('password', null, InputOption::VALUE_REQUIRED, 'The password; defaults to an empty string', '')
+    ->addOption('charset', null, InputOption::VALUE_REQUIRED, 'The connection charset; defaults to utf8mb4', 'utf8mb4')
+    ->addOption('database', null, InputOption::VALUE_REQUIRED, 'Accept table names as arguments, in the given database')
+    ->addOption('add-drop-table', null, InputOption::VALUE_NONE, 'Add this option to include a statement to drop the table if it already exists')
+    ->addOption('no-schema-name', null, InputOption::VALUE_NONE, 'Add this option to not include the schema name in the output')
+    ->setCode($command)
+    ->run();
