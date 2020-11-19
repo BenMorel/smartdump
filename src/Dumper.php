@@ -32,7 +32,7 @@ class Dumper
      * Every string returned by the generator is a SQL statement.
      *
      * Note that we're iterating the tables twice, once to generate the workset, and once to dump the rows. We're also
-     * reading rows in the workset once by once; these are two areas that can probably be improved to make the dump
+     * reading rows in the workset one by one; these are two areas that can probably be improved to make the dump
      * faster.
      *
      * @param Table[] $tables             The base tables to dump.
@@ -79,7 +79,7 @@ class Dumper
      */
     private function generateWorkset(array $tables): Workset
     {
-        // start with a blank workset, and fill it by iterating recursively over the tables
+        // start with a blank workset, and fill it by iterating recursively over the table rows
         $workset = new Workset();
 
         foreach ($tables as $table) {

@@ -6,12 +6,11 @@ namespace BenMorel\SmartDump;
 
 use BenMorel\SmartDump\Object\ForeignKey;
 use BenMorel\SmartDump\Object\Table;
-use Generator;
 
 interface Driver
 {
     /**
-     * Returns the primary key column names for given name.
+     * Returns the primary key column names for the given table.
      *
      * @return string[]
      */
@@ -56,7 +55,7 @@ interface Driver
     public function quoteIdentifier(string $name) : string;
 
     /**
-     * Quotes a table identifier.
+     * Returns a quoted table identifier for the given table.
      *
      * Example for MySQL: '`schema`.`table`'
      */
