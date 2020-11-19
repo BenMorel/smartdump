@@ -104,7 +104,7 @@ class Dumper
             $primaryKeyId[$column] = $row[$column];
         }
 
-        /** @psalm-suppress InvalidScalarArgument */
+        /** @psalm-var non-empty-array<string, int|string> $primaryKeyId */
         if (! $workset->addRow($table, $primaryKeyId)) {
             // row already processed
             return;
@@ -125,7 +125,7 @@ class Dumper
                 $refId[$refColumnName] = $row[$columnName];
             }
 
-            /** @psalm-suppress InvalidScalarArgument */
+            /** @psalm-var non-empty-array<string, int|string> $refId */
             $refRow = $this->readRow($foreignKey->referencedTable, $refId);
 
             $this->addRowToWorkset($workset, $foreignKey->referencedTable, $refRow);
