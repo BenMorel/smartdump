@@ -75,9 +75,14 @@ class Dumper
      */
     private function generateWorkset(array $tables): Workset
     {
-        // start with a blank workset, and fill it by iterating recursively over the table rows
         $workset = new Workset();
 
+        // add requested tables to ensure that their structure will be exported even if they're empty
+        foreach ($tables as $table) {
+            $workset->addTable($table);
+        }
+
+        // iterate recursively over the table rows; these will add extra tables together with the row if required
         foreach ($tables as $table) {
             foreach ($this->readTable($table) as $row) {
                 $this->addRowToWorkset($workset, $table, $row);

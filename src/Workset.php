@@ -32,6 +32,33 @@ final class Workset
     private array $hashes = [];
 
     /**
+     * A map of hash to Table instance.
+     *
+     * This allows to quickly check if a table is already set.
+     * Hashes are currently a serialized string of schema name, table name.
+     *
+     * @var array<string, Table>
+     */
+    private array $tables;
+
+    /**
+     * Adds a table to the workset, to ensure that its structure will be exported.
+     *
+     * This only needs to be called for explicitly requested tables, to ensure that we'll always export their structure,
+     * even if they're empty. Other tables will only be included in the workset if at least one row is required.
+     *
+     * @param Table $table
+     */
+    public function addTable(Table $table): void
+    {
+        $hash = serialize([$table->schema, $table->name]);
+
+        if (! isset($this->tables[$hash])) {
+            $this->tables[$hash] = $table;
+        }
+    }
+
+    /**
      * Adds a table row to the workset.
      *
      * The $id is the identifier of the row as an associative array of column name to value.
@@ -49,6 +76,8 @@ final class Workset
             return false;
         }
 
+        $this->addTable($table);
+
         $this->primaryKeyIds[$table->schema][$table->name][] = $primaryKeyId;
         $this->hashes[$hash] = true;
 
@@ -62,15 +91,7 @@ final class Workset
      */
     public function getTables(): array
     {
-        $result = [];
-
-        foreach ($this->primaryKeyIds as $schema => $tables) {
-            foreach ($tables as $table => $rows) {
-                $result[] = new Table($schema, $table);
-            }
-        }
-
-        return $result;
+        return array_values($this->tables);
     }
 
     /**
