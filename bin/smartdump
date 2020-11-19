@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 use BenMorel\SmartDump\Driver\MySQLDriver;
 use BenMorel\SmartDump\Dumper;
+use BenMorel\SmartDump\DumpOptions;
 use BenMorel\SmartDump\Object\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -70,10 +71,16 @@ $command = function(InputInterface $input, OutputInterface $output): void {
         }
     }
 
-    $addDropTable = (bool) $input->getOption('add-drop-table');
-    $noSchemaName = (bool) $input->getOption('no-schema-name');
+    $noCreateTable = (bool) $input->getOption('no-create-table');
+    $addDropTable  = (bool) $input->getOption('add-drop-table');
+    $noSchemaName  = (bool) $input->getOption('no-schema-name');
 
-    $statements = $dumper->dump($tables, ! $noSchemaName, $addDropTable);
+    $options = new DumpOptions();
+    $options->addCreateTable = ! $noCreateTable;
+    $options->addDropTable = $addDropTable;
+    $options->includeSchemaNameInOutput = ! $noSchemaName;
+
+    $statements = $dumper->dump($tables, $options);
 
     foreach ($statements as $statement) {
         $output->writeln($statement);
@@ -89,7 +96,8 @@ $command = function(InputInterface $input, OutputInterface $output): void {
     ->addOption('password', null, InputOption::VALUE_REQUIRED, 'The password; defaults to an empty string', '')
     ->addOption('charset', null, InputOption::VALUE_REQUIRED, 'The connection charset; defaults to utf8mb4', 'utf8mb4')
     ->addOption('database', null, InputOption::VALUE_REQUIRED, 'Accept table names as arguments, in the given database')
-    ->addOption('add-drop-table', null, InputOption::VALUE_NONE, 'Add this option to include a statement to drop the table if it already exists')
+    ->addOption('no-create-table', null, InputOption::VALUE_NONE, 'Add this option to not include a CREATE TABLE statement')
+    ->addOption('add-drop-table', null, InputOption::VALUE_NONE, 'Add this option to include a DROP TABLE IF EXISTS statement before CREATE TABLE')
     ->addOption('no-schema-name', null, InputOption::VALUE_NONE, 'Add this option to not include the schema name in the output')
     ->setCode($command)
     ->run();

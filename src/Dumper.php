@@ -35,17 +35,11 @@ class Dumper
      * reading rows in the workset one by one; these are two areas that can probably be improved to make the dump
      * faster.
      *
-     * @param Table[] $tables             The base tables to dump.
-     * @param bool    $schemaNameInOutput Whether to include the schema name in the dump. Setting this to false allows
-     *                                    for importing the dump into another schema name than the source database.
-     *                                    Note that if set to false and the source spans multiple schemas, importing the
-     *                                    dump will regroup all tables in the same schema, and conflicts may occur if
-     *                                    tables from different schemas had the same name.
-     * @param bool    $dropTableIfExists  Whether to include a statement to drop the table if it already exists.
+     * @param Table[] $tables The base tables to dump.
      *
      * @return Generator<string>
      */
-    public function dump(array $tables, bool $schemaNameInOutput, bool $dropTableIfExists): Generator
+    public function dump(array $tables, DumpOptions $options): Generator
     {
         $workset = $this->generateWorkset($tables);
 
@@ -54,15 +48,17 @@ class Dumper
         yield $this->driver->getDisableForeignKeysSQL();
 
         foreach ($workset->getTables() as $table) {
-            $tableName = $schemaNameInOutput
+            $tableName = $options->includeSchemaNameInOutput
                 ? $this->driver->getTableIdentifier($table)
                 : $this->driver->quoteIdentifier($table->name);
 
-            if ($dropTableIfExists) {
+            if ($options->addDropTable) {
                 yield $this->driver->getDropTableIfExistsSQL($tableName);
             }
 
-            yield $this->driver->getCreateTableSQL($table, $schemaNameInOutput);
+            if ($options->addCreateTable) {
+                yield $this->driver->getCreateTableSQL($table, $options->includeSchemaNameInOutput);
+            }
 
             foreach ($workset->getPrimaryKeyIds($table) as $primaryKeyId) {
                 $row = $this->readRow($table, $primaryKeyId);
