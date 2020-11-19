@@ -39,7 +39,7 @@ final class Workset
      *
      * @var array<string, Table>
      */
-    private array $tables;
+    private array $tables = [];
 
     /**
      * Adds a table to the workset, to ensure that its structure will be exported.
