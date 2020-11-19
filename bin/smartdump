@@ -49,7 +49,7 @@ $command = function(InputInterface $input, OutputInterface $output): void {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $driver = new MySQLDriver($pdo);
-    $dumper = new Dumper($driver);
+    $dumper = new Dumper($pdo, $driver);
 
     /** @var string|null $database */
     $database = $input->getOption('database');

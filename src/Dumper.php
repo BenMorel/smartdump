@@ -6,15 +6,19 @@ namespace BenMorel\SmartDump;
 
 use BenMorel\SmartDump\Object\Table;
 use Generator;
+use PDO;
 
 class Dumper
 {
+    private PDO $pdo;
+
     private Driver $driver;
 
     private DriverCache $driverCache;
 
-    public function __construct(Driver $driver)
+    public function __construct(PDO $pdo, Driver $driver)
     {
+        $this->pdo = $pdo;
         $this->driver = $driver;
         $this->driverCache = new DriverCache($driver);
     }
@@ -60,8 +64,8 @@ class Dumper
 
             yield $this->driver->getCreateTableSQL($table, $schemaNameInOutput);
 
-            foreach ($workset->getRows($table) as $row) {
-                $row = $this->driver->readRow($table, $row);
+            foreach ($workset->getPrimaryKeyIds($table) as $primaryKeyId) {
+                $row = $this->readRow($table, $primaryKeyId);
 
                 yield $this->getInsertSQL($tableName, $row);
             }
@@ -79,7 +83,7 @@ class Dumper
         $workset = new Workset();
 
         foreach ($tables as $table) {
-            foreach ($this->driver->readTable($table) as $row) {
+            foreach ($this->readTable($table) as $row) {
                 $this->addRowToWorkset($workset, $table, $row);
             }
         }
@@ -122,10 +126,64 @@ class Dumper
             }
 
             /** @psalm-suppress InvalidScalarArgument */
-            $refRow = $this->driver->readRow($foreignKey->referencedTable, $refId);
+            $refRow = $this->readRow($foreignKey->referencedTable, $refId);
 
             $this->addRowToWorkset($workset, $foreignKey->referencedTable, $refRow);
         }
+    }
+
+    /**
+     * Reads the whole table, yielding rows as associative arrays.
+     *
+     * @psalm-return Generator<non-empty-array<string, scalar|null>>
+     */
+    private function readTable(Table $table): Generator
+    {
+        $query = 'SELECT * FROM ' . $this->driver->getTableIdentifier($table);
+
+        $statement = $this->pdo->query($query);
+
+        while (false !== $row = $statement->fetch(PDO::FETCH_ASSOC)) {
+            /** @psalm-var non-empty-array<string, scalar|null> $row */
+            yield $row;
+        }
+    }
+
+    /**
+     * Reads a single row as an associative array of column name to value.
+     *
+     * The $uniqueId is the identifier of the row as an associative array of column name to value.
+     * The column names must match the primary key or a unique key of the table.
+     *
+     * @psalm-param non-empty-array<string, int|string> $uniqueId
+     *
+     * @psalm-return non-empty-array<string, scalar|null>
+     */
+    public function readRow(Table $table, array $uniqueId): array
+    {
+        $conditions = [];
+        $values = [];
+
+        foreach ($uniqueId as $name => $value) {
+            $conditions[] = $this->driver->quoteIdentifier($name) . ' = ?';
+            $values[] = $value;
+        }
+
+        $query = sprintf(
+            'SELECT * FROM %s WHERE %s',
+            $this->driver->getTableIdentifier($table),
+            implode(' AND ', $conditions)
+        );
+
+        $statement = $this->pdo->prepare($query);
+        $statement->execute($values);
+
+        /** @psalm-var list<non-empty-array<string, scalar|null>> $rows */
+        $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        assert(count($rows) === 1);
+
+        return $rows[0];
     }
 
     /**

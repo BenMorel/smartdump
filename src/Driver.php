@@ -25,31 +25,6 @@ interface Driver
     public function getForeignKeys(Table $table): array;
 
     /**
-     * Reads the whole table, yielding rows as associative arrays.
-     *
-     * @todo not driver-specific
-     *
-     * @param Table $table
-     *
-     * @return Generator<non-empty-array<string, scalar|null>>
-     */
-    public function readTable(Table $table): Generator;
-
-    /**
-     * Reads a single row as an associative array of column name to value.
-     *
-     * The $id is the identifier of the row as an associative array of column name to value.
-     * The column names must match the primary key or a unique key of the table.
-     *
-     * @todo not driver-specific
-     *
-     * @psalm-param non-empty-array<string, int|string> $id
-     *
-     * @psalm-return non-empty-array<string, scalar|null>
-     */
-    public function readRow(Table $table, array $id): array;
-
-    /**
      * Returns the SQL that creates the given table.
      *
      * @param bool $schemaNameInOutput Whether to include the schema name in the CREATE TABLE output.

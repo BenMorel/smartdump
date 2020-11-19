@@ -15,11 +15,11 @@ use BenMorel\SmartDump\Object\Table;
 final class Workset
 {
     /**
-     * The ids of the rows in the workset, indexed by schema name & table name.
+     * The primary key ids of the rows in the workset, indexed by schema name & table name.
      *
      * @psalm-var array<string, array<string, list<non-empty-array<string, int|string>>>>
      */
-    private array $rows = [];
+    private array $primaryKeyIds = [];
 
     /**
      * A map of hash of existing rows to true.
@@ -49,7 +49,7 @@ final class Workset
             return false;
         }
 
-        $this->rows[$table->schema][$table->name][] = $primaryKeyId;
+        $this->primaryKeyIds[$table->schema][$table->name][] = $primaryKeyId;
         $this->hashes[$hash] = true;
 
         return true;
@@ -64,7 +64,7 @@ final class Workset
     {
         $result = [];
 
-        foreach ($this->rows as $schema => $tables) {
+        foreach ($this->primaryKeyIds as $schema => $tables) {
             foreach ($tables as $table => $rows) {
                 $result[] = new Table($schema, $table);
             }
@@ -74,14 +74,14 @@ final class Workset
     }
 
     /**
-     * Returns the ids of the rows in the workset for the given table.
+     * Returns the primary key ids of the rows in the workset for the given table.
      *
-     * Each identifier is an associative array of column name to value, that matches the primary key of the table.
+     * Each identifier is an associative array of column name to value, that match the primary key of the table.
      *
      * @psalm-return list<non-empty-array<string, int|string>>
      */
-    public function getRows(Table $table): array
+    public function getPrimaryKeyIds(Table $table): array
     {
-        return $this->rows[$table->schema][$table->name] ?? [];
+        return $this->primaryKeyIds[$table->schema][$table->name] ?? [];
     }
 }

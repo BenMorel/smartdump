@@ -80,43 +80,6 @@ final class MySQLDriver implements Driver
         return $foreignKeys;
     }
 
-    public function readTable(Table $table): Generator
-    {
-        $statement = $this->pdo->query('SELECT * FROM ' . $this->getTableIdentifier($table));
-
-        while (false !== $row = $statement->fetch(PDO::FETCH_ASSOC)) {
-            /** @psalm-var non-empty-array<string, scalar|null> $row */
-            yield $row;
-        }
-    }
-
-    public function readRow(Table $table, array $id): array
-    {
-        $conditions = [];
-        $values = [];
-
-        foreach ($id as $name => $value) {
-            $conditions[] = $this->quoteIdentifier($name) . ' = ?';
-            $values[] = $value;
-        }
-
-        $query = sprintf(
-            'SELECT * FROM %s WHERE %s',
-            $this->getTableIdentifier($table),
-            implode(' AND ', $conditions)
-        );
-
-        $statement = $this->pdo->prepare($query);
-        $statement->execute($values);
-
-        /** @psalm-var list<non-empty-array<string, scalar|null>> $rows */
-        $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
-
-        assert(count($rows) === 1);
-
-        return $rows[0];
-    }
-
     /**
      * @psalm-return non-empty-array<string, string>
      */
