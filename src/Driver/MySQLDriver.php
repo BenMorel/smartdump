@@ -41,7 +41,7 @@ final class MySQLDriver implements Driver
     /**
      * @psalm-suppress InaccessibleProperty https://github.com/vimeo/psalm/issues/4606
      */
-    public function getForeignKeysForTable(Table $table): array
+    public function getForeignKeys(Table $table): array
     {
         $statement = $this->pdo->prepare(<<<EOT
             SELECT ID, REF_NAME

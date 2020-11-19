@@ -22,7 +22,7 @@ interface Driver
      *
      * @return ForeignKey[]
      */
-    public function getForeignKeysForTable(Table $table): array;
+    public function getForeignKeys(Table $table): array;
 
     /**
      * Reads the whole table, yielding rows as associative arrays.

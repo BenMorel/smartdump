@@ -11,9 +11,12 @@ class Dumper
 {
     private Driver $driver;
 
+    private DriverCache $driverCache;
+
     public function __construct(Driver $driver)
     {
         $this->driver = $driver;
+        $this->driverCache = new DriverCache($driver);
     }
 
     /**
@@ -89,8 +92,7 @@ class Dumper
      */
     private function addRowToWorkset(Workset $workset, Table $table, array $row): void
     {
-        // @todo don't load PK columns for each row, store them in Table or cache them
-        $primaryKeyColumns = $this->driver->getPrimaryKeyColumns($table);
+        $primaryKeyColumns = $this->driverCache->getPrimaryKeyColumns($table);
 
         $primaryKeyId = [];
 
@@ -105,8 +107,7 @@ class Dumper
         }
 
         // this is the first time we encounter this row, follow its relationships
-        // @todo same as above
-        $foreignKeys = $this->driver->getForeignKeysForTable($table);
+        $foreignKeys = $this->driverCache->getForeignKeys($table);
 
         foreach ($foreignKeys as $foreignKey) {
             $refId = [];
