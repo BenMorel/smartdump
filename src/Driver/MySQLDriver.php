@@ -7,7 +7,6 @@ namespace BenMorel\SmartDump\Driver;
 use BenMorel\SmartDump\Driver;
 use BenMorel\SmartDump\Object\ForeignKey;
 use BenMorel\SmartDump\Object\Table;
-use Generator;
 use PDO;
 
 final class MySQLDriver implements Driver
@@ -139,17 +138,42 @@ final class MySQLDriver implements Driver
         // output does not contain a semicolon
         $sql .= ';';
 
-        if (! $schemaNameInOutput) {
+        if ($schemaNameInOutput) {
             // MySQL never includes the schema name in the SHOW CREATE TABLE output.
-            return $sql;
+
+            $schema = $this->quoteIdentifier($table->schema);
+
+            $sql = preg_replace('/^CREATE TABLE /', 'CREATE TABLE ' . $schema . '.', $sql);
         }
 
-        // There does not seem to be a way to tell MySQL to include the schema name in the CREATE TABLE output;
-        // let's add it manually.
+        // Constraints may or may not contain the schema of the target table, depending on whether or not the tables are
+        // in the same schema. We need to rewrite the REFERENCES part to ensure that we comply with $schemaNameInOutput.
+        // A regexp is not completely foolproof for this purpose, but unless table or column names contain crazy
+        // characters like backticks, dots or parentheses (unfortunately they can), this will work.
 
-        $schema = $this->quoteIdentifier($table->schema);
+        $regexp = '/(CONSTRAINT .+? FOREIGN KEY .+? REFERENCES )(?:`(.+?)`(?:\.`(.+?)`)?)( \(.+?\))/';
 
-        return preg_replace('/^CREATE TABLE /', 'CREATE TABLE ' . $schema . '.', $sql);
+        $sql = preg_replace_callback($regexp, function(array $matches) use ($table, $schemaNameInOutput) {
+            [, $before, $a, $b, $after] = $matches;
+
+            if ($b === '') {
+                $schemaName = $table->schema;
+                $tableName = $a;
+            } else {
+                $schemaName = $a;
+                $tableName = $b;
+            }
+
+            $quotedTableName = $this->quoteIdentifier($tableName);
+
+            if ($schemaNameInOutput) {
+                $quotedTableName = $this->quoteIdentifier($schemaName) . '.' . $quotedTableName;
+            }
+
+            return $before . $quotedTableName . $after;
+        }, $sql);
+
+        return $sql;
     }
 
     public function getDropTableIfExistsSQL(string $table): string
