@@ -22,7 +22,7 @@ If you use `mysqldump`, you'll get broken foreign key constraints to `orders` an
 
 If you use `smartdump` instead, you'll get the whole `order_items` table, **plus** the rows from `orders` and `products` required to satisfy the constraints, **plus**, in turn, the rows from `users` and `countries` required to satisfy the remaining constraints! 💪
 
-The key takeaway here is that **`smartdump` will only import the rows required to satisfy the constraints**.
+The key takeaway here is that `smartdump` **will only import the rows required to satisfy the constraints** of the requested tables.
 
 ## Usage
 
