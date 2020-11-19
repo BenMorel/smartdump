@@ -10,7 +10,8 @@ Note: although this tool targets MySQL only for now, it is designed to be able t
 
 ## Introduction
 
-Did you ever need to download just a couple tables from your MySQL database, but end up with broken foreign key constraints? What if you could import every single foreign row your data depends on as well, and nothing more?
+Did you ever need to export just a couple tables from your MySQL database, but end up with broken foreign key constraints?
+What if you could import every single foreign row your data depends on as well, and nothing more?
 This tool does just that.
 
 Let's say you want to dump just the `order_items` table below:
@@ -21,7 +22,7 @@ If you use `mysqldump`, you'll get broken foreign key constraints to `orders` an
 
 If you use `smartdump` instead, you'll get the whole `order_items` table, **plus** the rows from `orders` and `products` required to satisfy the constraints, **plus**, in turn, the rows from `users` and `countries` required to satisfy the remaining constraints! 💪
 
-The key takeaway here is that `smartdump` will only import the rows required to satisfy the constraints, not the whole `orders`/`products`/etc. tables.
+The key takeaway here is that **`smartdump` will only import the rows required to satisfy the constraints**.
 
 ## Usage
 
