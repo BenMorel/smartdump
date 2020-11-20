@@ -48,6 +48,8 @@ vendor/bin/smartdump --database db table1 table2
 
 ## Options
 
+Options that take a value:
+
 | Option | Description | Default value |
 | ------ | ----------- | ------------- |
 | `--host` | The host name | localhost |
@@ -56,9 +58,14 @@ vendor/bin/smartdump --database db table1 table2
 | `--password` | The password | |
 | `--charset` | The character set | utf8mb4 |
 | `--database` | The database name to prepend to table names | |
-| `--no-create-table` | Add this option to not include a `CREATE TABLE` statement | |
-| `--add-drop-table` | Add this option to include a `DROP TABLE IF EXISTS` statement before `CREATE TABLE` | |
-| `--no-schema-name` | Add this option to not include the schema name in the output; this allows for importing the dump into a schema name other than that of the source database.
+
+Options that don't take a value:
+
+| Option | Description
+| ------ | -----------
+| `--no-create-table` | Add this option to not include a `CREATE TABLE` statement |
+| `--add-drop-table` | Add this option to include a `DROP TABLE IF EXISTS` statement before `CREATE TABLE` |
+| `--no-schema-name` | Add this option to not include the schema name in the output; this allows for importing the dump into a schema name other than that of the source database. |
 
 ## Future scope (todo, ideas)
 
@@ -68,6 +75,7 @@ vendor/bin/smartdump --database db table1 table2
 - support for loading *incoming* relationships to the tables (**?**)  
   Right now, only the outgoing relationships are followed, it could be interesting to follow incoming relationships to each row we're exporting as well; at least as an option?
 - a mode that does not dump, but scans the whole database for broken foreign key constraints
+
 ---
 
 Database diagram courtesy [dbdiagram.io](https://dbdiagram.io/).
