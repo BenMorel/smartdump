@@ -18,6 +18,7 @@
         <MissingConstructor>
             <errorLevel type="suppress">
                 <directory name="src/Object" />
+                <file name="src/DumpOptions.php" />
             </errorLevel>
         </MissingConstructor>
     </issueHandlers>

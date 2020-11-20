@@ -154,6 +154,7 @@ final class MySQLDriver implements Driver
         $regexp = '/(CONSTRAINT .+? FOREIGN KEY .+? REFERENCES )(?:`(.+?)`(?:\.`(.+?)`)?)( \(.+?\))/';
 
         $sql = preg_replace_callback($regexp, function(array $matches) use ($table, $schemaNameInOutput) {
+            /** @psalm-var list<string> $matches */
             [, $before, $a, $b, $after] = $matches;
 
             if ($b === '') {
