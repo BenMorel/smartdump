@@ -42,6 +42,8 @@ class Dumper
      */
     public function dump(array $tables, DumpOptions $options): Generator
     {
+        $this->driver->beginTransaction();
+
         $workset = $this->generateWorkset($tables);
 
         // even though our export should be referentially intact, our inserts are not necessarily performed in the right
@@ -69,6 +71,8 @@ class Dumper
         }
 
         yield $this->driver->getEnableForeignKeysSQL();
+
+        $this->driver->endTransaction();
     }
 
     /**

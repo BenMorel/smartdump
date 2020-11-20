@@ -18,6 +18,17 @@ final class MySQLDriver implements Driver
         $this->pdo = $pdo;
     }
 
+    public function beginTransaction(): void
+    {
+        $this->pdo->exec('SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE');
+        $this->pdo->exec('START TRANSACTION READ ONLY');
+    }
+
+    public function endTransaction(): void
+    {
+        $this->pdo->exec('COMMIT');
+    }
+
     public function getPrimaryKeyColumns(Table $table): array
     {
         $statement = $this->pdo->prepare(<<<EOT

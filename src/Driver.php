@@ -10,6 +10,17 @@ use BenMorel\SmartDump\Object\Table;
 interface Driver
 {
     /**
+     * Begins a transaction, read-only if possible.
+     * The transaction semantics should allow a consistent snapshot.
+     */
+    public function beginTransaction(): void;
+
+    /**
+     * Ends the transaction. This can perform a commit or a rollback, it should not matter.
+     */
+    public function endTransaction(): void;
+
+    /**
      * Returns the primary key column names for the given table.
      *
      * @return string[]
