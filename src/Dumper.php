@@ -7,6 +7,7 @@ namespace BenMorel\SmartDump;
 use BenMorel\SmartDump\Object\Table;
 use Generator;
 use PDO;
+use RuntimeException;
 
 class Dumper
 {
@@ -127,7 +128,7 @@ class Dumper
             }
 
             /** @psalm-var non-empty-array<string, int|string> $refId */
-            $refRow = $this->readRow($foreignKey->referencedTable, $refId);
+            $refRow = $this->readRow($foreignKey->referencedTable, $refId, $table);
 
             $this->addRowToWorkset($workset, $foreignKey->referencedTable, $refRow);
         }
@@ -159,8 +160,15 @@ class Dumper
      * @psalm-param non-empty-array<string, int|string> $uniqueId
      *
      * @psalm-return non-empty-array<string, scalar|null>
+     *
+     * @param Table|null $fkTable The table on which the foreign key to the requested row has been found, if any.
+     *                            If $fkTable is null, this means that we should be reading a row that we have already
+     *                            read before, so it should be always available. If $fkTable is not null, then the row
+     *                            can only be absent if a foreign key constraint is broken.
+     *
+     * @throws RuntimeException If there is not exactly one row found.
      */
-    public function readRow(Table $table, array $uniqueId): array
+    public function readRow(Table $table, array $uniqueId, ?Table $fkTable = null): array
     {
         $conditions = [];
         $values = [];
@@ -182,9 +190,51 @@ class Dumper
         /** @psalm-var list<non-empty-array<string, scalar|null>> $rows */
         $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-        assert(count($rows) === 1);
+        $count = count($rows);
+
+        if ($count !== 1) {
+            if ($count === 0) {
+                if ($fkTable !== null) {
+                    throw $this->targetRowNotFound($table, $uniqueId, $fkTable);
+                }
+
+                throw new RuntimeException(
+                    'Could not re-read previously read row by primary key; ' .
+                    'this should not be possible.'
+                );
+            }
+
+            throw new RuntimeException(
+                'Found more than 1 row matching the foreign key; ' .
+                'this should not be possible as we should be targeting a primary key or a unique key.');
+        }
 
         return $rows[0];
+    }
+
+    /**
+     * @psalm-param non-empty-array<string, int|string> $uniqueId
+     */
+    private function targetRowNotFound(Table $table, array $uniqueId, Table $fkTable): RuntimeException
+    {
+        $tableName = $table->schema . '.' . $table->name;
+        $fkTableName = $fkTable->schema . '.' . $fkTable->name;
+
+        $displayId = [];
+
+        foreach ($uniqueId as $name => $value) {
+            $displayId[] = $name . '=' . var_export($value, true);
+        }
+
+        $displayId = implode(', ', $displayId);
+
+        return new RuntimeException(sprintf(
+            'Found a broken foreign key constraint: %s to %s with %s; ' .
+            'the target row does not exist. Aborting.',
+            $fkTableName,
+            $tableName,
+            $displayId
+        ));
     }
 
     /**
