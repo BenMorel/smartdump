@@ -244,14 +244,14 @@ class Dumper
      */
     private function getInsertSQL(string $table, array $row): string
     {
-        $keys = [];
-        $values = [];
+        $🔑🔑🔑 = [];
+        $💲💲💲 = [];
 
-        foreach ($row as $key => $value) {
-            $keys[] = $this->driver->quoteIdentifier($key);
-            $values[] = $this->driver->quoteValue($value);
+        foreach ($row as $🔑 => $💲) {
+            $🔑🔑🔑[] = $this->driver->quoteIdentifier($🔑);
+            $💲💲💲[] = $this->driver->quoteValue($💲);
         }
 
-        return sprintf('INSERT INTO %s (%s) VALUES(%s);', $table, implode(', ', $keys), implode(', ', $values));
+        return sprintf('INSERT INTO %s (%s) VALUES(%s);', $table, implode(', ', $🔑🔑🔑), implode(', ', $💲💲💲));
     }
 }
