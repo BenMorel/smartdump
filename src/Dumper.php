@@ -221,23 +221,14 @@ class Dumper
      */
     private function targetRowNotFound(Table $table, array $uniqueId, Table $fkTable): RuntimeException
     {
-        $tableName = $table->schema . '.' . $table->name;
-        $fkTableName = $fkTable->schema . '.' . $fkTable->name;
-
-        $displayId = [];
-
-        foreach ($uniqueId as $name => $value) {
-            $displayId[] = $name . '=' . var_export($value, true);
-        }
-
-        $displayId = implode(', ', $displayId);
-
         return new RuntimeException(sprintf(
             'Found a broken foreign key constraint: %s to %s with %s; ' .
             'the target row does not exist. Aborting.',
-            $fkTableName,
-            $tableName,
-            $displayId
+            $fkTable->schema . '.' . $fkTable->name,
+            $table->schema . '.' . $table->name,
+            implode(', ', array_map(function ($name, $value) {
+                return $name . '=' . var_export($value, true);
+            }, array_keys($uniqueId), $uniqueId))
         ));
     }
 
