@@ -252,9 +252,6 @@ class Dumper
             $values[] = $this->driver->quoteValue($value);
         }
 
-        $keys = implode(', ', $keys);
-        $values = implode(', ', $values);
-
-        return sprintf('INSERT INTO %s (%s) VALUES(%s);', $table, $keys, $values);
+        return sprintf('INSERT INTO %s (%s) VALUES(%s);', $table, implode(', ', $keys), implode(', ', $values));
     }
 }
