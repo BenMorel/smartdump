@@ -222,10 +222,12 @@ class Dumper
     private function targetRowNotFound(Table $table, array $uniqueId, Table $fkTable): RuntimeException
     {
         return new RuntimeException(sprintf(
-            'Found a broken foreign key constraint: %s to %s with %s; ' .
-            'the target row does not exist. Aborting.',
-            $fkTable->schema . '.' . $fkTable->name,
-            $table->schema . '.' . $table->name,
+            'Found a broken foreign key constraint: %s.%s to %s.%s with %s; ' .
+                'the target row does not exist. Aborting.',
+            $fkTable->schema,
+            $fkTable->name,
+            $table->schema,
+            $table->name,
             implode(', ', array_map(function ($name, $value) {
                 return $name . '=' . var_export($value, true);
             }, array_keys($uniqueId), $uniqueId))
