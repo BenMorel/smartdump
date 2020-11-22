@@ -229,7 +229,7 @@ final class MySQLDriver implements Driver
         }
 
         if (is_bool($value)) {
-            return (string) (int) $value;
+            return $value ? '1' : '0';
         }
 
         if (is_int($value) || is_float($value)) {
