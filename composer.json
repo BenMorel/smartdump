@@ -3,9 +3,11 @@
     "description": "Dumps selected MySQL tables together with their relationships",
     "license": "MIT",
     "require": {
-        "php": "^7.4 || ^8.1",
+        "php": "^7.4 || ^8.0",
         "ext-pdo": "*",
-        "symfony/console": "^5.1",
+        "symfony/console": "^5.1"
+    },
+    "require-dev": {
         "vimeo/psalm": "^4.1"
     },
     "autoload": {
