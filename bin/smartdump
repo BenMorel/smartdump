@@ -40,28 +40,37 @@ if (! $found) {
     exit(1);
 }
 
+/**
+ * Creates a TargetTable from a string.
+ *
+ * Possible formats:
+ *
+ * - table
+ * - db.table
+ * - table:CONDITIONS
+ * - db.table:CONDITIONS
+ */
 function createTargetTable(string $table, ?string $schema): TargetTable
 {
-    $tableAndConditions = explode(':', $table);
-
-    $conditions = null;
-
-    if (count($tableAndConditions) === 2) {
-        [$table, $conditions] = $tableAndConditions;
-    } elseif (count($tableAndConditions) !== 1) {
+    if (preg_match('/^(?:([^\:\.]+)\.)?([^\:\.]+)(?:\:(.+))?$/', $table, $matches) !== 1) {
         throw new InvalidArgumentException('Invalid format for target table.');
     }
 
-    $schemaAndTable = explode('.', $table);
+    /** @psalm-var array{0: string, 1: string, 2: string, 3?: string} $matches */
 
-    if (count($schemaAndTable) === 2) {
-        [$schema, $table] = $schemaAndTable;
-    } elseif (count($schemaAndTable) !== 1) {
-        throw new InvalidArgumentException('Invalid format for target table.');
-    }
-
-    if ($schema === null) {
+    if ($matches[1] !== '') {
+        // overrides the default schema provided in --database, if any
+        $schema = $matches[1];
+    } elseif ($schema === null) {
         throw new InvalidArgumentException('Either provide table names as schema.table, or use the --database option.');
+    }
+
+    $table = $matches[2];
+
+    if (isset($matches[3]) && $matches[3] !== '') {
+        $conditions = $matches[3];
+    } else {
+        $conditions = null;
     }
 
     $targetTable = new TargetTable();
