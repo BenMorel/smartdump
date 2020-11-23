@@ -18,11 +18,11 @@ Let's say you want to dump the `order_items` table below:
 
 <img src="https://raw.githubusercontent.com/BenMorel/smartdump/master/diagram.png" alt="">
 
-If you use `mysqldump`, you'll get broken foreign key constraints to `orders` and `products`.
+If you use `mysqldump`, you'll get the whole `order_items` table, with broken foreign key constraints to `orders` and `products`.
 
-If you use `smartdump` instead, you'll get the whole `order_items` table, **plus** the rows from `orders` and `products` required to satisfy the constraints, **plus**, in turn, the rows from `users` and `countries` required to satisfy the remaining constraints! 💪
+If you use `smartdump` instead, you'll get the rows you want from `order_items` (or the whole table, as you wish), **plus** the rows from `orders` and `products` required to satisfy their constraints, **plus**, in turn, the rows from `users` and `countries` required to satisfy the remaining constraints! 💪
 
-The key takeaway here is that `smartdump` **will only import the rows required to satisfy the constraints** of the requested tables.
+The key takeaway here is that `smartdump` **will only import the rows required to satisfy the constraints** of the requested tables/rows.
 
 ## Installation
 
