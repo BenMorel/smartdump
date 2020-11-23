@@ -5,7 +5,8 @@ declare(strict_types=1);
 
 use BenMorel\SmartDump\Driver\MySQLDriver;
 use BenMorel\SmartDump\Dumper;
-use BenMorel\SmartDump\DumpOptions;
+use BenMorel\SmartDump\Configuration\DumpConfiguration;
+use BenMorel\SmartDump\Configuration\TargetTable;
 use BenMorel\SmartDump\Object\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -38,6 +39,38 @@ if (! $found) {
     exit(1);
 }
 
+function createTargetTable(string $table, ?string $schema): TargetTable
+{
+    $tableAndConditions = explode(':', $table);
+
+    $conditions = null;
+
+    if (count($tableAndConditions) === 2) {
+        [$table, $conditions] = $tableAndConditions;
+    } elseif (count($tableAndConditions) !== 1) {
+        throw new InvalidArgumentException('Invalid format for target table.');
+    }
+
+    $schemaAndTable = explode('.', $table);
+
+    if (count($schemaAndTable) === 2) {
+        [$schema, $table] = $schemaAndTable;
+    } elseif (count($schemaAndTable) !== 1) {
+        throw new InvalidArgumentException('Invalid format for target table.');
+    }
+
+    if ($schema === null) {
+        throw new InvalidArgumentException('Either provide table names as schema.table, or use the --database option.');
+    }
+
+    $targetTable = new TargetTable();
+
+    $targetTable->table = new Table($schema, $table);
+    $targetTable->conditions = $conditions;
+
+    return $targetTable;
+}
+
 $command = function(InputInterface $input, OutputInterface $output): void {
     $dsn = sprintf(
         'mysql:host=%s;port=%d;charset=%s',
@@ -55,35 +88,25 @@ $command = function(InputInterface $input, OutputInterface $output): void {
     /** @var string|null $database */
     $database = $input->getOption('database');
 
-    $tables = [];
-
-    foreach ($input->getArgument('tables') as $table) {
-        if ($database !== null) {
-            $tables[] = new Table($database, $table);
-        } else {
-            $schemaAndTable = explode('.', $table);
-
-            if (count($schemaAndTable) !== 2) {
-                throw new InvalidArgumentException('Either provide table names as schema.table, or use the --database option.');
-            }
-
-            $tables[] = new Table(...$schemaAndTable);
-        }
-    }
+    $targetTables = array_map(
+        fn(string $table) => createTargetTable($table, $database),
+        $input->getArgument('tables')
+    );
 
     $noCreateTable = (bool) $input->getOption('no-create-table');
     $addDropTable  = (bool) $input->getOption('add-drop-table');
     $noSchemaName  = (bool) $input->getOption('no-schema-name');
     $merge         = (bool) $input->getOption('merge');
 
-    $options = new DumpOptions();
+    $config = new DumpConfiguration();
 
-    $options->addCreateTable            = ! $noCreateTable;
-    $options->addDropTable              = $addDropTable;
-    $options->includeSchemaNameInOutput = ! $noSchemaName;
-    $options->merge                     = $merge;
+    $config->targetTables              = $targetTables;
+    $config->addCreateTable            = ! $noCreateTable;
+    $config->addDropTable              = $addDropTable;
+    $config->includeSchemaNameInOutput = ! $noSchemaName;
+    $config->merge                     = $merge;
 
-    $statements = $dumper->dump($tables, $options);
+    $statements = $dumper->dump($config);
 
     foreach ($statements as $statement) {
         $output->writeln($statement);

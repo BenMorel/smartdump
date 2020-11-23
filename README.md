@@ -46,6 +46,18 @@ or, if all your tables are in the same database:
 vendor/bin/smartdump --database db table1 table2
 ```
 
+To dump only a subset of a table, add extra conditions after the table name:
+
+```
+vendor/bin/smartdump "db.table:LIMIT 100"
+```
+
+Or even:
+
+```
+vendor/bin/smartdump "db.table:WHERE user_id=123 ORDER BY id DESC LIMIT 10"
+```
+
 ## Options
 
 Options that take a value:
@@ -71,7 +83,6 @@ Options that don't take a value:
 
 - standalone PHAR version
 - support for other RDBMS
-- support for loading only *n* rows in the base tables; useful to extract a sample dataset
 - support for loading *incoming* relationships to the tables (**?**)  
   Right now, only the outgoing relationships are followed, it could be interesting to follow incoming relationships to each row we're exporting as well; at least as an option?
 - a mode that does not dump, but scans the whole database for broken foreign key constraints

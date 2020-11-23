@@ -2,10 +2,15 @@
 
 declare(strict_types=1);
 
-namespace BenMorel\SmartDump;
+namespace BenMorel\SmartDump\Configuration;
 
-class DumpOptions
+class DumpConfiguration
 {
+    /**
+     * @var TargetTable[]
+     */
+    public array $targetTables;
+
     /**
      * Whether to add CREATE TABLE statements in the dump.
      */

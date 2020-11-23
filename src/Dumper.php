@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace BenMorel\SmartDump;
 
+use BenMorel\SmartDump\Configuration\DumpConfiguration;
+use BenMorel\SmartDump\Configuration\TargetTable;
 use BenMorel\SmartDump\Object\Table;
 use Generator;
 use PDO;
@@ -40,33 +42,33 @@ class Dumper
      *
      * @return Generator<string>
      */
-    public function dump(array $tables, DumpOptions $options): Generator
+    public function dump(DumpConfiguration $config): Generator
     {
         $this->driver->beginTransaction();
 
-        $workset = $this->generateWorkset($tables);
+        $workset = $this->generateWorkset($config);
 
         // even though our export should be referentially intact, our inserts are not necessarily performed in the right
         // order, so we disable foreign key checks first!
         yield $this->driver->getDisableForeignKeysSQL();
 
         foreach ($workset->getTables() as $table) {
-            $tableName = $options->includeSchemaNameInOutput
+            $tableName = $config->includeSchemaNameInOutput
                 ? $this->driver->getTableIdentifier($table)
                 : $this->driver->quoteIdentifier($table->name);
 
-            if ($options->addDropTable && ! $options->merge) {
+            if ($config->addDropTable && ! $config->merge) {
                 yield $this->driver->getDropTableIfExistsSQL($tableName);
             }
 
-            if ($options->addCreateTable && ! $options->merge) {
-                yield $this->driver->getCreateTableSQL($table, $options->includeSchemaNameInOutput);
+            if ($config->addCreateTable && ! $config->merge) {
+                yield $this->driver->getCreateTableSQL($table, $config->includeSchemaNameInOutput);
             }
 
             foreach ($workset->getPrimaryKeyIds($table) as $primaryKeyId) {
                 $row = $this->readRow($table, $primaryKeyId);
 
-                if ($options->merge) {
+                if ($config->merge) {
                     yield $this->driver->getUpsertSQL($tableName, $row);
                 } else {
                     yield $this->getInsertSQL($tableName, $row);
@@ -79,22 +81,19 @@ class Dumper
         $this->driver->endTransaction();
     }
 
-    /**
-     * @param Table[] $tables
-     */
-    private function generateWorkset(array $tables): Workset
+    private function generateWorkset(DumpConfiguration $config): Workset
     {
         $workset = new Workset();
 
         // add requested tables to ensure that their structure will be exported even if they're empty
-        foreach ($tables as $table) {
-            $workset->addTable($table);
+        foreach ($config->targetTables as $targetTable) {
+            $workset->addTable($targetTable->table);
         }
 
         // iterate recursively over the table rows; these will add extra tables together with the row if required
-        foreach ($tables as $table) {
-            foreach ($this->readTable($table) as $row) {
-                $this->addRowToWorkset($workset, $table, $row);
+        foreach ($config->targetTables as $targetTable) {
+            foreach ($this->readTargetTable($targetTable) as $row) {
+                $this->addRowToWorkset($workset, $targetTable->table, $row);
             }
         }
 
@@ -143,13 +142,17 @@ class Dumper
     }
 
     /**
-     * Reads the whole table, yielding rows as associative arrays.
+     * Reads the target table, yielding rows as associative arrays.
      *
      * @psalm-return Generator<non-empty-array<string, scalar|null>>
      */
-    private function readTable(Table $table): Generator
+    private function readTargetTable(TargetTable $targetTable): Generator
     {
-        $query = 'SELECT * FROM ' . $this->driver->getTableIdentifier($table);
+        $query = 'SELECT * FROM ' . $this->driver->getTableIdentifier($targetTable->table);
+
+        if ($targetTable->conditions !== null) {
+            $query .= ' ' . $targetTable->conditions;
+        }
 
         $statement = $this->pdo->query($query);
 

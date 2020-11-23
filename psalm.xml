@@ -13,12 +13,11 @@
         </ignoreFiles>
     </projectFiles>
 
-
     <issueHandlers>
         <MissingConstructor>
             <errorLevel type="suppress">
+                <directory name="src/Configuration" />
                 <directory name="src/Object" />
-                <file name="src/DumpOptions.php" />
             </errorLevel>
         </MissingConstructor>
     </issueHandlers>
