@@ -27,6 +27,7 @@ $found = false;
 foreach ($possibleVendorLocations as $location) {
     $autoloader = __DIR__ . '/' . $location . '/vendor/autoload.php';
     if (is_readable($autoloader)) {
+        /** @psalm-suppress UnresolvableInclude */
         require $autoloader;
         $found = true;
         break;
@@ -72,14 +73,24 @@ function createTargetTable(string $table, ?string $schema): TargetTable
 }
 
 $command = function(InputInterface $input, OutputInterface $output): void {
-    $dsn = sprintf(
-        'mysql:host=%s;port=%d;charset=%s',
-        $input->getOption('host'),
-        (int) $input->getOption('port'),
-        $input->getOption('charset')
-    );
+    /** @var string $host */
+    $host = $input->getOption('host');
 
-    $pdo = new PDO($dsn, $input->getOption('user'), $input->getOption('password'));
+    /** @var string $port */
+    $port = $input->getOption('port');
+
+    /** @var string $user */
+    $user = $input->getOption('user');
+
+    /** @var string $password */
+    $password = $input->getOption('password');
+
+    /** @var string $charset */
+    $charset = $input->getOption('charset');
+
+    $dsn = sprintf('mysql:host=%s;port=%s;charset=%s', $host, $port, $charset);
+
+    $pdo = new PDO($dsn, $user, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $driver = new MySQLDriver($pdo);
@@ -88,9 +99,12 @@ $command = function(InputInterface $input, OutputInterface $output): void {
     /** @var string|null $database */
     $database = $input->getOption('database');
 
+    /** @var string[] $tables */
+    $tables = $input->getArgument('tables');
+
     $targetTables = array_map(
         fn(string $table) => createTargetTable($table, $database),
-        $input->getArgument('tables')
+        $tables
     );
 
     $noCreateTable = (bool) $input->getOption('no-create-table');

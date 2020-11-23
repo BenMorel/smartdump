@@ -8,6 +8,7 @@
 >
     <projectFiles>
         <directory name="src" />
+        <file name="bin/smartdump" />
         <ignoreFiles>
             <directory name="vendor" />
         </ignoreFiles>
