@@ -193,25 +193,16 @@ final class MySQLDriver implements Driver
         return 'DROP TABLE IF EXISTS ' . $table . ';';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getDisableForeignKeysSQL(): string
     {
         return 'SET foreign_key_checks = 0;';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function getEnableForeignKeysSQL(): string
     {
         return 'SET foreign_key_checks = 1;';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function quoteIdentifier(string $name) : string
     {
         return '`' . str_replace('`', '``', $name) . '`';
