@@ -78,7 +78,7 @@ interface Driver
      *
      * Example for MySQL: 'foo' => '`foo`'
      */
-    public function quoteIdentifier(string $name) : string;
+    public function quoteIdentifier(string $name): string;
 
     /**
      * Returns a quoted table identifier for the given table.
@@ -92,5 +92,5 @@ interface Driver
      *
      * @param scalar|null $value
      */
-    public function quoteValue($value) : string;
+    public function quoteValue($value): string;
 }

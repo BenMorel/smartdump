@@ -216,7 +216,7 @@ final class MySQLDriver implements Driver
         return sprintf('INSERT INTO %s SET %s ON DUPLICATE KEY UPDATE %s;', $table, $values, $values);
     }
 
-    public function quoteIdentifier(string $name) : string
+    public function quoteIdentifier(string $name): string
     {
         return '`' . str_replace('`', '``', $name) . '`';
     }
@@ -226,7 +226,7 @@ final class MySQLDriver implements Driver
         return $this->quoteIdentifier($table->schema) . '.' . $this->quoteIdentifier($table->name);
     }
 
-    public function quoteValue($value) : string
+    public function quoteValue($value): string
     {
         if ($value === null) {
             return 'NULL';
