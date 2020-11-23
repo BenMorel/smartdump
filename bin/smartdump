@@ -74,11 +74,14 @@ $command = function(InputInterface $input, OutputInterface $output): void {
     $noCreateTable = (bool) $input->getOption('no-create-table');
     $addDropTable  = (bool) $input->getOption('add-drop-table');
     $noSchemaName  = (bool) $input->getOption('no-schema-name');
+    $merge         = (bool) $input->getOption('merge');
 
     $options = new DumpOptions();
-    $options->addCreateTable = ! $noCreateTable;
-    $options->addDropTable = $addDropTable;
+
+    $options->addCreateTable            = ! $noCreateTable;
+    $options->addDropTable              = $addDropTable;
     $options->includeSchemaNameInOutput = ! $noSchemaName;
+    $options->merge                     = $merge;
 
     $statements = $dumper->dump($tables, $options);
 
@@ -99,5 +102,6 @@ $command = function(InputInterface $input, OutputInterface $output): void {
     ->addOption('no-create-table', null, InputOption::VALUE_NONE, 'Add this option to not include a CREATE TABLE statement')
     ->addOption('add-drop-table', null, InputOption::VALUE_NONE, 'Add this option to include a DROP TABLE IF EXISTS statement before CREATE TABLE')
     ->addOption('no-schema-name', null, InputOption::VALUE_NONE, 'Add this option to not include the schema name in the output')
+    ->addOption('merge', null, InputOption::VALUE_NONE, 'Add this option to create a dump that can be merged into an existing schema, using an upsert. Implies --no-create-table')
     ->setCode($command)
     ->run();

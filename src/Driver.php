@@ -59,6 +59,21 @@ interface Driver
     public function getEnableForeignKeysSQL(): string;
 
     /**
+     * Returns a SQL statement to upsert the given row.
+     *
+     * An upsert is an INSERT that falls back to an UPDATE if a row with the same primary key already exists.
+     *
+     * The upsert must be implemented in such a way that is does not remove the existing row, if any, before updating
+     * it.
+     *
+     * @psalm-param non-empty-array<string, scalar|null> $row
+     *
+     * @param string $table The quoted table name.
+     * @param array  $row   The row, as an associative array of column names to values.
+     */
+    public function getUpsertSQL(string $table, array $row): string;
+
+    /**
      * Quotes an identifier such as a table name or field name.
      *
      * Example for MySQL: 'foo' => '`foo`'

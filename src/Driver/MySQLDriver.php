@@ -203,6 +203,19 @@ final class MySQLDriver implements Driver
         return 'SET foreign_key_checks = 1;';
     }
 
+    public function getUpsertSQL(string $table, array $row): string
+    {
+        $values = [];
+
+        foreach ($row as $key => $value) {
+            $values[] = $this->quoteIdentifier($key) . ' = ' . $this->quoteValue($value);
+        }
+
+        $values = implode(', ', $values);
+
+        return sprintf('INSERT INTO %s SET %s ON DUPLICATE KEY UPDATE %s;', $table, $values, $values);
+    }
+
     public function quoteIdentifier(string $name) : string
     {
         return '`' . str_replace('`', '``', $name) . '`';

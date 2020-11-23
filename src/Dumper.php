@@ -55,18 +55,22 @@ class Dumper
                 ? $this->driver->getTableIdentifier($table)
                 : $this->driver->quoteIdentifier($table->name);
 
-            if ($options->addDropTable) {
+            if ($options->addDropTable && ! $options->merge) {
                 yield $this->driver->getDropTableIfExistsSQL($tableName);
             }
 
-            if ($options->addCreateTable) {
+            if ($options->addCreateTable && ! $options->merge) {
                 yield $this->driver->getCreateTableSQL($table, $options->includeSchemaNameInOutput);
             }
 
             foreach ($workset->getPrimaryKeyIds($table) as $primaryKeyId) {
                 $row = $this->readRow($table, $primaryKeyId);
 
-                yield $this->getInsertSQL($tableName, $row);
+                if ($options->merge) {
+                    yield $this->driver->getUpsertSQL($tableName, $row);
+                } else {
+                    yield $this->getInsertSQL($tableName, $row);
+                }
             }
         }
 
@@ -252,6 +256,6 @@ class Dumper
             $values[] = $this->driver->quoteValue($value);
         }
 
-        return sprintf('INSERT INTO %s (%s) VALUES(%s);', $table, implode(', ', $keys), implode(', ', $values));
+        return sprintf('INSERT INTO %s (%s) VALUES (%s);', $table, implode(', ', $keys), implode(', ', $values));
     }
 }
