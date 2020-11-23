@@ -66,7 +66,7 @@ Options that don't take a value:
 | `--no-create-table` | Add this option to not include a `CREATE TABLE` statement |
 | `--add-drop-table` | Add this option to include a `DROP TABLE IF EXISTS` statement before `CREATE TABLE` |
 | `--no-schema-name` | Add this option to not include the schema name in the output; this allows for importing the dump into a schema name other than that of the source database. |
-
+| `--merge` | Add this option to create a dump that can be merged into an existing schema; this removes `CREATE TABLE` statements and uses upserts instead of inserts. Implies `--no-create-table`.
 ## Future scope (todo, ideas)
 
 - standalone PHAR version
